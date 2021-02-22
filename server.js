@@ -1,32 +1,44 @@
-// server.js
-// where your node app starts
+"use strict";
 
-// init project
-var express = require('express');
-var app = express();
+require('dotenv').config();
+const express = require('express');
+const app = express();
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
-var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
+// enable CORS so that your API is remotely testable by FCC 
+const cors = require('cors');
+app.use(cors({ optionsSuccessStatus: 200 }));  // some legacy browsers choke on 204
+const { dateToFccFormat, timeStampToDate } = require("./controllers/timestampToDate");
 
-// http://expressjs.com/en/starter/static-files.html
+// log requests to the console
+// app.use(function (req, res, next) {
+//   console.log([req.ip, req.method, req.path].join(" "));
+//   next();
+// });
+
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
+// home page with instructions
 app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+// user requests the current date
+app.get("/api/timestamp/", function (req, res) {
+  res.json(dateToFccFormat(new Date()));
 });
 
+// user requests a specific date
+app.get("/api/timestamp/:timestamp", function (req, res) {
+  let date = timeStampToDate(req.params["timestamp"]);
+  // if the date is not valid return an error
+  if (isNaN(date)) {
+    res.status(400).json({ error: "Invalid Date" });
+  } else {
+    res.json(dateToFccFormat(date));
+  }
+});
 
-
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
+// listen for requests
+const listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
